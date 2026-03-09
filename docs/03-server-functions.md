@@ -46,10 +46,12 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 
 export const getPost = createServerFn()
-  .validator(z.object({ id: z.string() }))
+  .inputValidator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
     // data.id は string として型推論される
-    const res = await fetch(`https://jsonplaceholder.typicode.com/posts/${data.id}`)
+    const res = await fetch(
+      `https://jsonplaceholder.typicode.com/posts/${data.id}`,
+    )
     return res.json() as Promise<{ id: number; title: string; body: string }>
   })
 ```
@@ -73,7 +75,39 @@ function PostPage() {
     </article>
   )
 }
+
+}
 ```
+
+getPost は id が必要なので、例えば id: '1' で取得する場合、loader でまとめてオブジェクトを返します：
+
+```tsx
+export const Route = createFileRoute('/_layout/about')({
+  loader: async () => {
+    const [hello, post] = await Promise.all([
+      getHello(),
+      getPost({ data: { id: '1' } }),
+    ])
+    return { hello, post }
+  },
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  const { hello, post } = Route.useLoaderData()
+  return (
+    <div>
+      <div>{hello.message}</div>
+      <div>{post.title}</div>
+    </div>
+  )
+}
+```
+
+ポイント：
+- `loader` は単一の値しか返せないため、複数データはオブジェクトにまとめて返す
+- 並列取得したい場合は `Promise.all()` を使う（直列より高速）
+- `getPost` は `inputValidator` でスキーマを定義しているため、呼び出し時に `{ data: { id: '...' } }` の形で渡す
 
 ---
 
@@ -87,7 +121,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 
 export const createPost = createServerFn({ method: 'POST' })
-  .validator(z.object({ title: z.string(), body: z.string() }))
+  .inputValidator(z.object({ title: z.string(), body: z.string() }))
   .handler(async ({ data }) => {
     const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
       method: 'POST',
@@ -126,12 +160,12 @@ function CreatePostForm() {
 
 ## createServerFn と tRPC の使い分け
 
-| | `createServerFn` | tRPC |
-|---|---|---|
-| 用途 | ページ単位のデータ取得・更新 | 複数ページにまたがる API 層 |
-| 型安全 | ◎ | ◎ |
-| キャッシュ管理 | loader 任せ | TanStack Query で細かく制御 |
-| 外部クライアント対応 | ✕ | ○ |
-| 向いている場面 | SSR 前提のシンプルな処理 | 複雑なデータフェッチ・再利用性が必要な場合 |
+|                      | `createServerFn`             | tRPC                                       |
+| -------------------- | ---------------------------- | ------------------------------------------ |
+| 用途                 | ページ単位のデータ取得・更新 | 複数ページにまたがる API 層                |
+| 型安全               | ◎                            | ◎                                          |
+| キャッシュ管理       | loader 任せ                  | TanStack Query で細かく制御                |
+| 外部クライアント対応 | ✕                            | ○                                          |
+| 向いている場面       | SSR 前提のシンプルな処理     | 複雑なデータフェッチ・再利用性が必要な場合 |
 
 本格的なアプリでは `createServerFn` を tRPC のエンドポイントの呼び出しに使い、ビジネスロジックは tRPC ルーターに集約するパターンが一般的。
