@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LayoutPostsRouteImport } from './routes/_layout/posts'
 import { Route as LayoutAboutRouteImport } from './routes/_layout/about'
 import { Route as LayoutPostsIndexRouteImport } from './routes/_layout/posts/index'
+import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as LayoutPostsPostIdRouteImport } from './routes/_layout/posts/$postId'
 
 const LayoutRoute = LayoutRouteImport.update({
@@ -40,6 +41,11 @@ const LayoutPostsIndexRoute = LayoutPostsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutPostsRoute,
 } as any)
+const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
+  id: '/api/trpc/$',
+  path: '/api/trpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutPostsPostIdRoute = LayoutPostsPostIdRouteImport.update({
   id: '/$postId',
   path: '/$postId',
@@ -51,12 +57,14 @@ export interface FileRoutesByFullPath {
   '/about': typeof LayoutAboutRoute
   '/posts': typeof LayoutPostsRouteWithChildren
   '/posts/$postId': typeof LayoutPostsPostIdRoute
+  '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/posts/': typeof LayoutPostsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof LayoutAboutRoute
   '/posts/$postId': typeof LayoutPostsPostIdRoute
+  '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/posts': typeof LayoutPostsIndexRoute
 }
 export interface FileRoutesById {
@@ -66,13 +74,20 @@ export interface FileRoutesById {
   '/_layout/about': typeof LayoutAboutRoute
   '/_layout/posts': typeof LayoutPostsRouteWithChildren
   '/_layout/posts/$postId': typeof LayoutPostsPostIdRoute
+  '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/posts/': typeof LayoutPostsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/posts' | '/posts/$postId' | '/posts/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/posts'
+    | '/posts/$postId'
+    | '/api/trpc/$'
+    | '/posts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/posts/$postId' | '/posts'
+  to: '/' | '/about' | '/posts/$postId' | '/api/trpc/$' | '/posts'
   id:
     | '__root__'
     | '/'
@@ -80,12 +95,14 @@ export interface FileRouteTypes {
     | '/_layout/about'
     | '/_layout/posts'
     | '/_layout/posts/$postId'
+    | '/api/trpc/$'
     | '/_layout/posts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LayoutRoute: typeof LayoutRouteWithChildren
+  ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -124,6 +141,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/posts/'
       preLoaderRoute: typeof LayoutPostsIndexRouteImport
       parentRoute: typeof LayoutPostsRoute
+    }
+    '/api/trpc/$': {
+      id: '/api/trpc/$'
+      path: '/api/trpc/$'
+      fullPath: '/api/trpc/$'
+      preLoaderRoute: typeof ApiTrpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/posts/$postId': {
       id: '/_layout/posts/$postId'
@@ -165,6 +189,7 @@ const LayoutRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
+  ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

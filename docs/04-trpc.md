@@ -96,7 +96,7 @@ TanStack Start の API ルートで tRPC リクエストを受け取る。
 
 ```ts
 // src/routes/api/trpc.$.ts
-import { createAPIFileRoute } from '@tanstack/react-start/api'
+import { createFileRoute } from '@tanstack/react-router'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { appRouter } from '../../trpc/router'
 
@@ -109,11 +109,18 @@ function handleRequest(request: Request) {
   })
 }
 
-export const APIRoute = createAPIFileRoute('/api/trpc/$')({
-  GET: ({ request }) => handleRequest(request),
-  POST: ({ request }) => handleRequest(request),
+export const Route = createFileRoute('/api/trpc/$')({
+  server: {
+    handlers: {
+      GET: ({ request }) => handleRequest(request),
+      POST: ({ request }) => handleRequest(request),
+    },
+  },
 })
 ```
+
+> **注意:** `createAPIFileRoute` (`@tanstack/react-start/api`) は旧 API。
+> v1.x では `createFileRoute` + `server.handlers` を使用する。
 
 ---
 

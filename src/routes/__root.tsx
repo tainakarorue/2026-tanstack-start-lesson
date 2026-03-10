@@ -8,6 +8,10 @@ import {
   Scripts,
   Link,
 } from '@tanstack/react-router'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '../trpc/query-client'
 
 import '../app.css'
 
@@ -32,19 +36,31 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <Outlet />
-    </RootDocument>
+    <QueryClientProvider client={queryClient}>
+      <RootDocument>
+        <Outlet />
+      </RootDocument>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   )
 }
 
 function NotFoundComponent() {
   return (
-    <div className='w-full h-full flex items-center justify-center bg-accent'>
-      <div className='flex flex-col items-center justify-center gap-y-2'>
-        <p className='text-6xl font-bold text-muted-foreground text-center'>404</p>
-        <span className='text-4xl font-bold text-muted-foreground text-center'>ページが見つかりません</span>
-        <Link to="/" className='font-medium text-muted-foreground hover:underline'>ホームへ戻る</Link>
+    <div className="w-full h-full flex items-center justify-center bg-accent">
+      <div className="flex flex-col items-center justify-center gap-y-2">
+        <p className="text-6xl font-bold text-muted-foreground text-center">
+          404
+        </p>
+        <span className="text-4xl font-bold text-muted-foreground text-center">
+          ページが見つかりません
+        </span>
+        <Link
+          to="/"
+          className="font-medium text-muted-foreground hover:underline"
+        >
+          ホームへ戻る
+        </Link>
       </div>
     </div>
   )
@@ -56,7 +72,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
-      <body className='w-full h-svh'>
+      <body className="w-full h-svh">
         {children}
         <Scripts />
       </body>
