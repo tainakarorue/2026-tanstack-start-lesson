@@ -48,73 +48,84 @@ export const Route = createFileRoute('/_public')({
 | 要素 | 役割 |
 |---|---|
 | `useForm` + `zodResolver` | バリデーション |
+| `Controller` | フィールドと form.control を接続 |
 | `Field` + `data-invalid` | エラー時にラベル・枠を赤くする |
 | `Input` + `aria-invalid` | エラー時に Input の枠・リングを赤くする |
 | `FieldError errors={[...]}` | エラーメッセージ表示 |
-| `signIn.email()` | Better Auth でサインイン実行 |
+| `useState` + `Alert` | サーバーエラーの表示 |
+| `signIn.email()` + コールバック | Better Auth でサインイン実行 |
 
 ```tsx
 // src/routes/_public/sign-in.tsx
+import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { useForm } from 'react-hook-form'
+
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signIn } from '../../lib/auth-client'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+
+import { signIn } from '@/lib/auth-client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Field,
   FieldLabel,
   FieldError,
   FieldGroup,
-} from '../../components/ui/field'
+} from '@/components/ui/field'
 import {
   Card,
   CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
-} from '../../components/ui/card'
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
+import { Alert, AlertTitle } from '@/components/ui/alert'
+import { OctagonAlertIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_public/sign-in')({
   component: SignInPage,
 })
 
-// ── スキーマ ──────────────────────────────────────────────
-const schema = z.object({
+const Formschema = z.object({
   email: z.string().email('有効なメールアドレスを入力してください'),
   password: z.string().min(8, 'パスワードは8文字以上で入力してください'),
 })
 
-type FormValues = z.infer<typeof schema>
+type FormValues = z.infer<typeof Formschema>
 
-// ── コンポーネント ────────────────────────────────────────
 function SignInPage() {
+  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(Formschema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   })
 
   const onSubmit = async (values: FormValues) => {
-    const { error } = await signIn.email({
-      email: values.email,
-      password: values.password,
-    })
-
-    if (error) {
-      setError('root', { message: 'メールアドレスまたはパスワードが正しくありません' })
-      return
-    }
-
-    navigate({ to: '/' })
+    await signIn.email(
+      {
+        email: values.email,
+        password: values.password,
+        callbackURL: '/',
+      },
+      {
+        onSuccess: () => {
+          navigate({ to: '/' })
+        },
+        onError: ({ error }) => {
+          setError(error.message)
+        },
+      },
+    )
   }
+
+  const isSubmitting = form.formState.isSubmitting
 
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
@@ -124,47 +135,66 @@ function SignInPage() {
           <CardDescription>アカウントにサインインしてください</CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form id="sif-form" onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
             <FieldGroup>
-              {/* メールアドレス */}
-              <Field data-invalid={!!errors.email}>
-                <FieldLabel htmlFor="email">メールアドレス</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  aria-invalid={!!errors.email}
-                  {...register('email')}
-                />
-                <FieldError errors={[errors.email]} />
-              </Field>
-
-              {/* パスワード */}
-              <Field data-invalid={!!errors.password}>
-                <FieldLabel htmlFor="password">パスワード</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  aria-invalid={!!errors.password}
-                  {...register('password')}
-                />
-                <FieldError errors={[errors.password]} />
-              </Field>
-
-              {/* サーバーエラー */}
-              <FieldError errors={[errors.root]} />
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="sif-email">メールアドレス</FieldLabel>
+                    <Input
+                      {...field}
+                      id="sif-email"
+                      type="email"
+                      placeholder="mail@example.com"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="sif-password">パスワード</FieldLabel>
+                    <Input
+                      {...field}
+                      id="sif-password"
+                      type="password"
+                      placeholder="••••••••"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
             </FieldGroup>
-          </CardContent>
 
+            {!!error && (
+              <Alert className="bg-rose-100 border-none text-rose-500">
+                <OctagonAlertIcon className="size-4" />
+                <AlertTitle>{error}</AlertTitle>
+              </Alert>
+            )}
+          </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'サインイン中...' : 'サインイン'}
             </Button>
             <p className="text-sm text-muted-foreground">
               アカウントをお持ちでない方は{' '}
-              <Link to="/sign-up" className="underline underline-offset-4 hover:text-primary">
+              <Link
+                to="/sign-up"
+                className="underline underline-offset-4 hover:text-primary"
+              >
                 サインアップ
               </Link>
             </p>
@@ -182,34 +212,38 @@ function SignInPage() {
 
 ```tsx
 // src/routes/_public/sign-up.tsx
+import { useState } from 'react'
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { useForm } from 'react-hook-form'
+
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signUp } from '../../lib/auth-client'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+
+import { signUp } from '@/lib/auth-client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Field,
   FieldLabel,
   FieldError,
   FieldGroup,
-} from '../../components/ui/field'
+} from '@/components/ui/field'
 import {
   Card,
   CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
-} from '../../components/ui/card'
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
+import { Alert, AlertTitle } from '@/components/ui/alert'
+import { OctagonAlertIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/_public/sign-up')({
   component: SignUpPage,
 })
 
-// ── スキーマ ──────────────────────────────────────────────
-const schema = z
+const Formschema = z
   .object({
     name: z.string().min(1, '名前を入力してください'),
     email: z.string().email('有効なメールアドレスを入力してください'),
@@ -221,35 +255,42 @@ const schema = z
     path: ['confirmPassword'],
   })
 
-type FormValues = z.infer<typeof schema>
+type FormValues = z.infer<typeof Formschema>
 
-// ── コンポーネント ────────────────────────────────────────
 function SignUpPage() {
+  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(Formschema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   })
 
   const onSubmit = async (values: FormValues) => {
-    const { error } = await signUp.email({
-      name: values.name,
-      email: values.email,
-      password: values.password,
-    })
-
-    if (error) {
-      setError('root', { message: 'アカウントの作成に失敗しました。このメールアドレスは既に使用されている可能性があります。' })
-      return
-    }
-
-    navigate({ to: '/' })
+    await signUp.email(
+      {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        callbackURL: '/',
+      },
+      {
+        onSuccess: () => {
+          navigate({ to: '/' })
+        },
+        onError: ({ error }) => {
+          setError(error.message)
+        },
+      },
+    )
   }
+
+  const isSubmitting = form.formState.isSubmitting
 
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
@@ -259,73 +300,106 @@ function SignUpPage() {
           <CardDescription>新しいアカウントを作成してください</CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form id="suf-form" onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
             <FieldGroup>
-              {/* 名前 */}
-              <Field data-invalid={!!errors.name}>
-                <FieldLabel htmlFor="name">名前</FieldLabel>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="山田 太郎"
-                  aria-invalid={!!errors.name}
-                  {...register('name')}
-                />
-                <FieldError errors={[errors.name]} />
-              </Field>
-
-              {/* メールアドレス */}
-              <Field data-invalid={!!errors.email}>
-                <FieldLabel htmlFor="email">メールアドレス</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  aria-invalid={!!errors.email}
-                  {...register('email')}
-                />
-                <FieldError errors={[errors.email]} />
-              </Field>
-
-              {/* パスワード */}
-              <Field data-invalid={!!errors.password}>
-                <FieldLabel htmlFor="password">パスワード</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  aria-invalid={!!errors.password}
-                  {...register('password')}
-                />
-                <FieldError errors={[errors.password]} />
-              </Field>
-
-              {/* パスワード確認 */}
-              <Field data-invalid={!!errors.confirmPassword}>
-                <FieldLabel htmlFor="confirmPassword">パスワード（確認）</FieldLabel>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  aria-invalid={!!errors.confirmPassword}
-                  {...register('confirmPassword')}
-                />
-                <FieldError errors={[errors.confirmPassword]} />
-              </Field>
-
-              {/* サーバーエラー */}
-              <FieldError errors={[errors.root]} />
+              <Controller
+                name="name"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="suf-name">名前</FieldLabel>
+                    <Input
+                      {...field}
+                      id="suf-name"
+                      type="text"
+                      placeholder="John Due"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="email"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="suf-email">メールアドレス</FieldLabel>
+                    <Input
+                      {...field}
+                      id="suf-email"
+                      type="email"
+                      placeholder="mail@example.com"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="password"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="suf-password">パスワード</FieldLabel>
+                    <Input
+                      {...field}
+                      id="suf-password"
+                      type="password"
+                      placeholder="••••••••"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="confirmPassword"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="suf-confirm-password">
+                      パスワード（確認）
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="suf-confirm-password"
+                      type="password"
+                      placeholder="••••••••"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
             </FieldGroup>
-          </CardContent>
 
+            {!!error && (
+              <Alert className="bg-rose-100 border-none text-rose-500">
+                <OctagonAlertIcon className="size-4" />
+                <AlertTitle>{error}</AlertTitle>
+              </Alert>
+            )}
+          </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? '作成中...' : 'アカウントを作成'}
             </Button>
             <p className="text-sm text-muted-foreground">
               アカウントをお持ちの方は{' '}
-              <Link to="/sign-in" className="underline underline-offset-4 hover:text-primary">
+              <Link
+                to="/sign-in"
+                className="underline underline-offset-4 hover:text-primary"
+              >
                 サインイン
               </Link>
             </p>
@@ -341,36 +415,53 @@ function SignUpPage() {
 
 ## 6. バリデーションの仕組み
 
-### Field + react-hook-form の連携パターン
+### Controller + react-hook-form の連携パターン
 
-shadcn の `Form` コンポーネントを使わず、`Field` + `FieldError` で同等のバリデーション表示を実現する。
+shadcn の `Form` コンポーネントを使わず、`Controller` + `Field` + `FieldError` で同等のバリデーション表示を実現する。
 
 ```tsx
-<Field data-invalid={!!errors.fieldName}>        {/* ← true でラベルが赤くなる */}
-  <FieldLabel htmlFor="fieldName">ラベル</FieldLabel>
-  <Input
-    id="fieldName"
-    aria-invalid={!!errors.fieldName}             {/* ← true で Input 枠が赤くなる */}
-    {...register('fieldName')}
-  />
-  <FieldError errors={[errors.fieldName]} />      {/* ← エラーメッセージ表示 */}
-</Field>
+<Controller
+  name="fieldName"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <Field data-invalid={fieldState.invalid}>      {/* ← true でラベルが赤くなる */}
+      <FieldLabel htmlFor="fieldName">ラベル</FieldLabel>
+      <Input
+        {...field}
+        id="fieldName"
+        aria-invalid={fieldState.invalid}           {/* ← true で Input 枠が赤くなる */}
+      />
+      {fieldState.invalid && (
+        <FieldError errors={[fieldState.error]} />  {/* ← エラーメッセージ表示 */}
+      )}
+    </Field>
+  )}
+/>
 ```
 
 ### サーバーエラーの扱い
 
-Better Auth から返ってきたエラーは `setError('root', ...)` でフォーム全体のエラーとして設定し、
-フォームの末尾に表示する。
+Better Auth のコールバック `onError` でエラーメッセージを `useState` に保存し、`Alert` コンポーネントで表示する。
 
 ```tsx
-const { error } = await signIn.email({ ... })
-if (error) {
-  setError('root', { message: 'エラーメッセージ' })
-}
+const [error, setError] = useState<string | null>(null)
+
+await signIn.email(
+  { email, password, callbackURL: '/' },
+  {
+    onSuccess: () => navigate({ to: '/' }),
+    onError: ({ error }) => setError(error.message),
+  },
+)
 ```
 
 ```tsx
-<FieldError errors={[errors.root]} />
+{!!error && (
+  <Alert className="bg-rose-100 border-none text-rose-500">
+    <OctagonAlertIcon className="size-4" />
+    <AlertTitle>{error}</AlertTitle>
+  </Alert>
+)}
 ```
 
 ### パスワード確認の cross-field バリデーション

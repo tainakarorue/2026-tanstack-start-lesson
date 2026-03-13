@@ -29,7 +29,7 @@ export const ensureSession = createServerFn({ method: 'GET' }).handler(
 export async function requireAuth() {
   const request = getRequest()
   const session = await auth.api.getSession({ headers: request.headers })
-  if (!session) throw redirect({ to: '/' })
+  if (!session) throw redirect({ to: '/sign-in' })
   return { session }
 }
 
