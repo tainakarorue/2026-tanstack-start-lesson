@@ -26,16 +26,20 @@ export const ensureSession = createServerFn({ method: 'GET' }).handler(
 )
 
 // 未ログインならサインインページへリダイレクト（beforeLoad / プロテクトページ用）
-export async function requireAuth() {
-  const request = getRequest()
-  const session = await auth.api.getSession({ headers: request.headers })
-  if (!session) throw redirect({ to: '/sign-in' })
-  return { session }
-}
+export const requireAuth = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const request = getRequest()
+    const session = await auth.api.getSession({ headers: request.headers })
+    if (!session) throw redirect({ to: '/sign-in' })
+    return { session }
+  },
+)
 
 // ログイン済みならトップページへリダイレクト（beforeLoad / サインインページ用）
-export async function requireGuest() {
-  const request = getRequest()
-  const session = await auth.api.getSession({ headers: request.headers })
-  if (session) throw redirect({ to: '/' })
-}
+export const requireGuest = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const request = getRequest()
+    const session = await auth.api.getSession({ headers: request.headers })
+    if (session) throw redirect({ to: '/' })
+  },
+)
