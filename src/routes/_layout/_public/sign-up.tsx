@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
-import { signIn } from '@/lib/auth-client'
+import { signUp } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -25,32 +25,42 @@ import {
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { OctagonAlertIcon } from 'lucide-react'
 
-export const Route = createFileRoute('/_public/sign-in')({
-  component: SignInPage,
+export const Route = createFileRoute('/_layout/_public/sign-up')({
+  component: SignUpPage,
 })
 
-const Formschema = z.object({
-  email: z.string().email('有効なメールアドレスを入力してください'),
-  password: z.string().min(8, 'パスワードは8文字以上で入力してください'),
-})
+const Formschema = z
+  .object({
+    name: z.string().min(1, '名前を入力してください'),
+    email: z.string().email('有効なメールアドレスを入力してください'),
+    password: z.string().min(8, 'パスワードは8文字以上で入力してください'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'パスワードが一致しません',
+    path: ['confirmPassword'],
+  })
 
 type FormValues = z.infer<typeof Formschema>
 
-function SignInPage() {
+function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(Formschema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
   })
 
   const onSubmit = async (values: FormValues) => {
-    await signIn.email(
+    await signUp.email(
       {
+        name: values.name,
         email: values.email,
         password: values.password,
         callbackURL: '/',
@@ -72,22 +82,41 @@ function SignInPage() {
     <div className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>サインイン</CardTitle>
-          <CardDescription>アカウントにサインインしてください</CardDescription>
+          <CardTitle>サインアップ</CardTitle>
+          <CardDescription>新しいアカウントを作成してください</CardDescription>
         </CardHeader>
 
-        <form id="sif-form" onSubmit={form.handleSubmit(onSubmit)}>
+        <form id="suf-form" onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
             <FieldGroup>
+              <Controller
+                name="name"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="suf-name">名前</FieldLabel>
+                    <Input
+                      {...field}
+                      id="suf-name"
+                      type="text"
+                      placeholder="John Due"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
               <Controller
                 name="email"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="sif-email">メールアドレス</FieldLabel>
+                    <FieldLabel htmlFor="suf-email">メールアドレス</FieldLabel>
                     <Input
                       {...field}
-                      id="sif-email"
+                      id="suf-email"
                       type="email"
                       placeholder="mail@example.com"
                       aria-invalid={fieldState.invalid}
@@ -103,10 +132,31 @@ function SignInPage() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="sif-password">パスワード</FieldLabel>
+                    <FieldLabel htmlFor="suf-password">パスワード</FieldLabel>
                     <Input
                       {...field}
-                      id="sif-password"
+                      id="suf-password"
+                      type="password"
+                      placeholder="••••••••"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="confirmPassword"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="suf-confirm-password">
+                      パスワード（確認）
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="suf-confirm-password"
                       type="password"
                       placeholder="••••••••"
                       aria-invalid={fieldState.invalid}
@@ -128,15 +178,15 @@ function SignInPage() {
           </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'サインイン中...' : 'サインイン'}
+              {isSubmitting ? '作成中...' : 'アカウントを作成'}
             </Button>
             <p className="text-sm text-muted-foreground">
-              アカウントをお持ちでない方は{' '}
+              アカウントをお持ちの方は{' '}
               <Link
-                to="/sign-up"
+                to="/sign-in"
                 className="underline underline-offset-4 hover:text-primary"
               >
-                サインアップ
+                サインイン
               </Link>
             </p>
           </CardFooter>
