@@ -14,6 +14,9 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '../trpc/query-client'
 
 import '../app.css'
+import { Toaster } from '@/components/ui/sonner'
+import { ThemeProvider } from 'next-themes'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -68,13 +71,21 @@ function NotFoundComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html>
+    <html suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body className="w-full h-svh">
-        {children}
-        <Scripts />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
+          <Scripts />
+        </ThemeProvider>
       </body>
     </html>
   )
