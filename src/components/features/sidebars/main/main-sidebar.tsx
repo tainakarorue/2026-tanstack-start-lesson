@@ -1,7 +1,6 @@
-'use client'
-
 import { Link } from '@tanstack/react-router'
 import { HomeIcon, FileIcon } from 'lucide-react'
+import { Image } from '@unpic/react'
 
 import { authClient } from '@/lib/auth-client'
 import { useSafeLogout } from '@/hooks/use-safe-logout'
@@ -53,12 +52,19 @@ export const MainSidebar = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="py-5">
                   <Link to="/">
-                    <img
+                    <Image
                       src="/logos/logo.svg"
                       alt="Logo"
                       width={24}
                       height={24}
+                      priority
                     />
+                    {/* <img
+                      src="/logos/logo.svg"
+                      alt="Logo"
+                      width={24}
+                      height={24}
+                    /> */}
                     <span>Next + oRPC</span>
                   </Link>
                 </SidebarMenuButton>

@@ -22,6 +22,7 @@ import { Route as LayoutPostsPostIdRouteImport } from './routes/_layout/posts/$p
 import { Route as LayoutPublicSignUpRouteImport } from './routes/_layout/_public/sign-up'
 import { Route as LayoutPublicSignInRouteImport } from './routes/_layout/_public/sign-in'
 import { Route as LayoutProtectedProtectedRouteImport } from './routes/_layout/_protected/protected'
+import { Route as LayoutProtectedDashboardPostsIndexRouteImport } from './routes/_layout/_protected/dashboard/posts/index'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -86,6 +87,12 @@ const LayoutProtectedProtectedRoute =
     path: '/protected',
     getParentRoute: () => LayoutProtectedRoute,
   } as any)
+const LayoutProtectedDashboardPostsIndexRoute =
+  LayoutProtectedDashboardPostsIndexRouteImport.update({
+    id: '/dashboard/posts/',
+    path: '/dashboard/posts/',
+    getParentRoute: () => LayoutProtectedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/posts/': typeof LayoutPostsIndexRoute
+  '/dashboard/posts/': typeof LayoutProtectedDashboardPostsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/posts': typeof LayoutPostsIndexRoute
+  '/dashboard/posts': typeof LayoutProtectedDashboardPostsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +134,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/posts/': typeof LayoutPostsIndexRoute
+  '/_layout/_protected/dashboard/posts/': typeof LayoutProtectedDashboardPostsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/posts/'
+    | '/dashboard/posts/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/posts'
+    | '/dashboard/posts'
   id:
     | '__root__'
     | '/'
@@ -165,6 +177,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_layout/posts/'
+    | '/_layout/_protected/dashboard/posts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -267,15 +280,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProtectedProtectedRouteImport
       parentRoute: typeof LayoutProtectedRoute
     }
+    '/_layout/_protected/dashboard/posts/': {
+      id: '/_layout/_protected/dashboard/posts/'
+      path: '/dashboard/posts'
+      fullPath: '/dashboard/posts/'
+      preLoaderRoute: typeof LayoutProtectedDashboardPostsIndexRouteImport
+      parentRoute: typeof LayoutProtectedRoute
+    }
   }
 }
 
 interface LayoutProtectedRouteChildren {
   LayoutProtectedProtectedRoute: typeof LayoutProtectedProtectedRoute
+  LayoutProtectedDashboardPostsIndexRoute: typeof LayoutProtectedDashboardPostsIndexRoute
 }
 
 const LayoutProtectedRouteChildren: LayoutProtectedRouteChildren = {
   LayoutProtectedProtectedRoute: LayoutProtectedProtectedRoute,
+  LayoutProtectedDashboardPostsIndexRoute:
+    LayoutProtectedDashboardPostsIndexRoute,
 }
 
 const LayoutProtectedRouteWithChildren = LayoutProtectedRoute._addFileChildren(

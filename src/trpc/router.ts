@@ -63,19 +63,35 @@ export const appRouter = router({
     ),
 
     // ログイン済みのみ投稿可能
+    // --- DB実装前（JSONPlaceholderモック） ---
+    // create: protectedProcedure
+    //   .input(z.object({ title: z.string(), body: z.string() }))
+    //   .mutation(async ({ input }) => {
+    //     const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify(input),
+    //     })
+    //     return res.json() as Promise<{
+    //       id: number
+    //       title: string
+    //       body: string
+    //     }>
+    //   }),
+    // --- DB実装後 ---
     create: protectedProcedure
-      .input(z.object({ title: z.string(), body: z.string() }))
-      .mutation(async ({ input }) => {
-        const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(input),
-        })
-        return res.json() as Promise<{
-          id: number
-          title: string
-          body: string
-        }>
+      .input(z.object({ title: z.string(), content: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        const [post] = await db
+          .insert(posts)
+          .values({
+            id: crypto.randomUUID(),
+            title: input.title,
+            content: input.content,
+            userId: ctx.session.user.id,
+          })
+          .returning()
+        return post
       }),
   }),
 })

@@ -1,5 +1,3 @@
-'use client'
-
 import { Link } from '@tanstack/react-router'
 import { ChevronsUpDownIcon, LogInIcon, LogOutIcon } from 'lucide-react'
 

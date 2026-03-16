@@ -79,11 +79,13 @@ function SignUpPage() {
   const isSubmitting = form.formState.isSubmitting
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-4">
+    <div className="flex h-full items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>サインアップ</CardTitle>
-          <CardDescription>新しいアカウントを作成してください</CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">サインアップ</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            新しいアカウントを作成してください
+          </CardDescription>
         </CardHeader>
 
         <form id="suf-form" onSubmit={form.handleSubmit(onSubmit)}>
@@ -170,13 +172,13 @@ function SignUpPage() {
             </FieldGroup>
 
             {!!error && (
-              <Alert className="bg-rose-100 border-none text-rose-500">
+              <Alert className="bg-rose-100 border-none text-rose-500 mt-2">
                 <OctagonAlertIcon className="size-4" />
                 <AlertTitle>{error}</AlertTitle>
               </Alert>
             )}
           </CardContent>
-          <CardFooter className="flex-col gap-3">
+          <CardFooter className="flex-col gap-3 mt-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? '作成中...' : 'アカウントを作成'}
             </Button>

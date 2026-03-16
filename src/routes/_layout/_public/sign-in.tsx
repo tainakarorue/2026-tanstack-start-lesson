@@ -69,15 +69,17 @@ function SignInPage() {
   const isSubmitting = form.formState.isSubmitting
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-4">
+    <div className="flex h-full items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>サインイン</CardTitle>
-          <CardDescription>アカウントにサインインしてください</CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">サインイン</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            アカウントにサインインしてください
+          </CardDescription>
         </CardHeader>
 
         <form id="sif-form" onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent>
+          <CardContent className="mt-2">
             <FieldGroup>
               <Controller
                 name="email"
@@ -120,13 +122,13 @@ function SignInPage() {
             </FieldGroup>
 
             {!!error && (
-              <Alert className="bg-rose-100 border-none text-rose-500">
+              <Alert className="bg-rose-100 border-none text-rose-500 mt-2">
                 <OctagonAlertIcon className="size-4" />
                 <AlertTitle>{error}</AlertTitle>
               </Alert>
             )}
           </CardContent>
-          <CardFooter className="flex-col gap-3">
+          <CardFooter className="flex-col gap-3 mt-4">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'サインイン中...' : 'サインイン'}
             </Button>
