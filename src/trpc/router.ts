@@ -1,4 +1,6 @@
 import { z } from 'zod'
+
+import { postsRouter } from './routers/posts'
 import { router, publicProcedure } from './init'
 
 export const appRouter = router({
@@ -7,7 +9,6 @@ export const appRouter = router({
     .query(({ input }) => {
       return { message: `Hello, ${input.name ?? 'World'}!` }
     }),
-
   posts: router({
     list: publicProcedure.query(async () => {
       const res = await fetch(
@@ -46,6 +47,7 @@ export const appRouter = router({
         }>
       }),
   }),
+  postsRouter: postsRouter,
 })
 
 // クライアントで型を使うためにエクスポート

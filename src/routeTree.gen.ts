@@ -23,6 +23,8 @@ import { Route as LayoutPublicSignUpRouteImport } from './routes/_layout/_public
 import { Route as LayoutPublicSignInRouteImport } from './routes/_layout/_public/sign-in'
 import { Route as LayoutProtectedProtectedRouteImport } from './routes/_layout/_protected/protected'
 import { Route as LayoutProtectedDashboardPostsIndexRouteImport } from './routes/_layout/_protected/dashboard/posts/index'
+import { Route as LayoutProtectedDashboardPostsNewRouteImport } from './routes/_layout/_protected/dashboard/posts/new'
+import { Route as LayoutProtectedDashboardPostsPostIdRouteImport } from './routes/_layout/_protected/dashboard/posts/$postId'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -93,6 +95,18 @@ const LayoutProtectedDashboardPostsIndexRoute =
     path: '/dashboard/posts/',
     getParentRoute: () => LayoutProtectedRoute,
   } as any)
+const LayoutProtectedDashboardPostsNewRoute =
+  LayoutProtectedDashboardPostsNewRouteImport.update({
+    id: '/dashboard/posts/new',
+    path: '/dashboard/posts/new',
+    getParentRoute: () => LayoutProtectedRoute,
+  } as any)
+const LayoutProtectedDashboardPostsPostIdRoute =
+  LayoutProtectedDashboardPostsPostIdRouteImport.update({
+    id: '/dashboard/posts/$postId',
+    path: '/dashboard/posts/$postId',
+    getParentRoute: () => LayoutProtectedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +119,8 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/posts/': typeof LayoutPostsIndexRoute
+  '/dashboard/posts/$postId': typeof LayoutProtectedDashboardPostsPostIdRoute
+  '/dashboard/posts/new': typeof LayoutProtectedDashboardPostsNewRoute
   '/dashboard/posts/': typeof LayoutProtectedDashboardPostsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +133,8 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/posts': typeof LayoutPostsIndexRoute
+  '/dashboard/posts/$postId': typeof LayoutProtectedDashboardPostsPostIdRoute
+  '/dashboard/posts/new': typeof LayoutProtectedDashboardPostsNewRoute
   '/dashboard/posts': typeof LayoutProtectedDashboardPostsIndexRoute
 }
 export interface FileRoutesById {
@@ -134,6 +152,8 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/_layout/posts/': typeof LayoutPostsIndexRoute
+  '/_layout/_protected/dashboard/posts/$postId': typeof LayoutProtectedDashboardPostsPostIdRoute
+  '/_layout/_protected/dashboard/posts/new': typeof LayoutProtectedDashboardPostsNewRoute
   '/_layout/_protected/dashboard/posts/': typeof LayoutProtectedDashboardPostsIndexRoute
 }
 export interface FileRouteTypes {
@@ -149,6 +169,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/posts/'
+    | '/dashboard/posts/$postId'
+    | '/dashboard/posts/new'
     | '/dashboard/posts/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -161,6 +183,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/posts'
+    | '/dashboard/posts/$postId'
+    | '/dashboard/posts/new'
     | '/dashboard/posts'
   id:
     | '__root__'
@@ -177,6 +201,8 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/_layout/posts/'
+    | '/_layout/_protected/dashboard/posts/$postId'
+    | '/_layout/_protected/dashboard/posts/new'
     | '/_layout/_protected/dashboard/posts/'
   fileRoutesById: FileRoutesById
 }
@@ -287,16 +313,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProtectedDashboardPostsIndexRouteImport
       parentRoute: typeof LayoutProtectedRoute
     }
+    '/_layout/_protected/dashboard/posts/new': {
+      id: '/_layout/_protected/dashboard/posts/new'
+      path: '/dashboard/posts/new'
+      fullPath: '/dashboard/posts/new'
+      preLoaderRoute: typeof LayoutProtectedDashboardPostsNewRouteImport
+      parentRoute: typeof LayoutProtectedRoute
+    }
+    '/_layout/_protected/dashboard/posts/$postId': {
+      id: '/_layout/_protected/dashboard/posts/$postId'
+      path: '/dashboard/posts/$postId'
+      fullPath: '/dashboard/posts/$postId'
+      preLoaderRoute: typeof LayoutProtectedDashboardPostsPostIdRouteImport
+      parentRoute: typeof LayoutProtectedRoute
+    }
   }
 }
 
 interface LayoutProtectedRouteChildren {
   LayoutProtectedProtectedRoute: typeof LayoutProtectedProtectedRoute
+  LayoutProtectedDashboardPostsPostIdRoute: typeof LayoutProtectedDashboardPostsPostIdRoute
+  LayoutProtectedDashboardPostsNewRoute: typeof LayoutProtectedDashboardPostsNewRoute
   LayoutProtectedDashboardPostsIndexRoute: typeof LayoutProtectedDashboardPostsIndexRoute
 }
 
 const LayoutProtectedRouteChildren: LayoutProtectedRouteChildren = {
   LayoutProtectedProtectedRoute: LayoutProtectedProtectedRoute,
+  LayoutProtectedDashboardPostsPostIdRoute:
+    LayoutProtectedDashboardPostsPostIdRoute,
+  LayoutProtectedDashboardPostsNewRoute: LayoutProtectedDashboardPostsNewRoute,
   LayoutProtectedDashboardPostsIndexRoute:
     LayoutProtectedDashboardPostsIndexRoute,
 }
