@@ -25,7 +25,7 @@ export const Route = createFileRoute('/_layout/_protected/dashboard/posts/')({
   component: RouteComponent,
 })
 
-const LIMIT = 10
+const LIMIT = 3
 
 function PostsTable() {
   const { page } = Route.useSearch()
